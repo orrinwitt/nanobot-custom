@@ -1,0 +1,66 @@
+# This file will be pushed to GitHub
+name: Auto-Update from Upstream
+
+on:
+  schedule:
+    # Check daily at 6 AM UTC (1 AM EST)
+    - cron: '0 6 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Get latest release from HKUDS/nanobot
+        id: upstream
+        run: |
+          LATEST=$(curl -s https://api.github.com/repos/HKUDS/nanobot/releases/latest | jq -r '.tag_name')
+          echo "version=$LATEST" >> $GITHUB_OUTPUT
+          echo "Latest upstream version: $LATEST"
+
+      - name: Get current version
+        id: current
+        run: |
+          CURRENT=$(grep -oP 'ARG NANOBOT_VERSION=\K[^ ]+' Dockerfile)
+          echo "version=$CURRENT" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT"
+
+      - name: Check if update needed
+        id: update
+        run: |
+          if [ "${{ steps.upstream.outputs.version }}" != "${{ steps.current.outputs.version }}" ]; then
+            echo "needed=true" >> $GITHUB_OUTPUT
+            echo "New version available: ${{ steps.upstream.outputs.version }}"
+          else
+            echo "needed=false" >> $GITHUB_OUTPUT
+            echo "Already on latest version"
+          fi
+
+      - name: Update Dockerfile
+        if: steps.update.outputs.needed == 'true'
+        run: |
+          sed -i 's/ARG NANOBOT_VERSION=.*/ARG NANOBOT_VERSION=${{ steps.upstream.outputs.version }}/' Dockerfile
+
+      - name: Commit and push changes
+        if: steps.update.outputs.needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Dockerfile
+          git commit -m "Auto-update to nanobot ${{ steps.upstream.outputs.version }}"
+          git push
+
+      - name: Notify on Telegram
+        if: steps.update.outputs.needed == 'true'
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d text="🔄 nanobot-custom updated to ${{ steps.upstream.outputs.version }}%0A%0AImage will be built automatically." \
+            -d parse_mode="HTML"
+
+      - name: No update needed
+        if: steps.update.outputs.needed != 'true'
+        run: echo "No update needed. Current version is up to date."
