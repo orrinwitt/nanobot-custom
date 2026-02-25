@@ -35,12 +35,19 @@ RUN apt-get update && apt-get install -y \
     nextcloud-desktop-cmd \
     git \
     curl \
+    tmux \
     && rm -rf /var/lib/apt/lists/*
 
 # Install MCP servers globally (standard location: /usr/lib/node_modules/, /usr/bin/)
 RUN npm install -g \
     @mauricio.wolff/mcp-obsidian \
     @modelcontextprotocol/server-memory
+
+# Install gog (Google API CLI) - standard location: /usr/bin/gog
+RUN curl -L -o /tmp/gog.tar.gz https://github.com/orrinwitt/gog/releases/latest/download/gog_linux_amd64.tar.gz \
+    && tar -xzf /tmp/gog.tar.gz -C /usr/bin gog \
+    && chmod +x /usr/bin/gog \
+    && rm /tmp/gog.tar.gz
 
 # Copy nanobot from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
