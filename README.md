@@ -55,7 +55,17 @@ The MCP servers are installed in standard locations and can be referenced by nam
 }
 ```
 
-## Updating
+## Auto-Updates
+
+This image automatically checks for new releases from [HKUDS/nanobot](https://github.com/HKUDS/nanobot) daily:
+
+- **Schedule**: Daily at 6 AM UTC (1 AM EST)
+- **Process**: Detects new release → updates Dockerfile → builds image → notifies via Telegram
+- **Manual trigger**: Go to Actions → "Auto-Update from Upstream" → Run workflow
+
+### Manual Update
+
+To manually update to a specific version:
 
 1. Update `NANOBOT_VERSION` in `Dockerfile`
 2. Push changes to GitHub
