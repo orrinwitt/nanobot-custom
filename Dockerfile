@@ -20,8 +20,8 @@ ARG NANOBOT_VERSION=v0.1.4.post2
 WORKDIR /build
 RUN git clone --depth 1 --branch ${NANOBOT_VERSION} https://github.com/HKUDS/nanobot.git .
 
-# Install nanobot and dependencies
-RUN pip install --no-cache-dir -e .
+# Install nanobot and dependencies (regular install, not editable)
+RUN pip install --no-cache-dir .
 
 # ============================================
 # Stage 2: Runtime image
