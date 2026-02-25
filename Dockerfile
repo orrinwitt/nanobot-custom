@@ -38,10 +38,8 @@ RUN apt-get update && apt-get install -y \
     tmux \
     && rm -rf /var/lib/apt/lists/*
 
-# Install MCP servers globally (standard location: /usr/lib/node_modules/, /usr/bin/)
-RUN npm install -g \
-    @mauricio.wolff/mcp-obsidian \
-    @modelcontextprotocol/server-memory
+# MCP servers will be run via npx (no global install needed)
+# npx caches packages in ~/.npm/_npx
 
 # Install gog (Google API CLI) from steipete/gogcli releases
 # Binary is named 'gog' inside the tarball
@@ -55,12 +53,6 @@ RUN curl -L -o /tmp/gogcli.tar.gz \
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Create config directory (like original)
-RUN mkdir -p /root/.nanobot
-
-# Gateway default port
-EXPOSE 18790
-
 # Set working directory
 WORKDIR /root/.nanobot
 
@@ -68,6 +60,6 @@ WORKDIR /root/.nanobot
 ENV PYTHONUNBUFFERED=1
 ENV NODE_PATH=/usr/lib/node_modules
 
-# Match original image - ENTRYPOINT allows passing commands like 'gateway'
-ENTRYPOINT ["nanobot"]
+# Match original image: ENTRYPOINT + CMD for default gateway command
+ENTRYPOINT ["python", "-m", "nanobot"]
 CMD ["gateway"]
