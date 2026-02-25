@@ -70,4 +70,4 @@ ENV NODE_PATH=/usr/lib/node_modules
 
 # Match original image - ENTRYPOINT allows passing commands like 'gateway'
 ENTRYPOINT ["nanobot"]
-CMD ["status"]
+CMD ["gateway"]
