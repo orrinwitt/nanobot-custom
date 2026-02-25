@@ -62,5 +62,5 @@ WORKDIR /root/.nanobot
 ENV PYTHONUNBUFFERED=1
 ENV NODE_PATH=/usr/lib/node_modules
 
-# Default command
-CMD ["python", "-m", "nanobot"]
+# Default command - use the installed nanobot entry point
+CMD ["nanobot"]
