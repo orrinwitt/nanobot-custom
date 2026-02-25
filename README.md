@@ -1,17 +1,20 @@
 # Nanobot Custom Image
 
-Custom Docker image for nanobot with MCP servers and Nextcloud sync.
+Custom Docker image for nanobot with MCP servers, Google API access, and Nextcloud sync.
 
 ## What's Included
 
 | Component | Location | Notes |
 |-----------|----------|-------|
-| nanobot | `/usr/local/lib/python3.12/site-packages/` | Built from source |
+| nanobot | `/usr/local/lib/python3.12/site-packages/` | Built from source (v0.1.4.post2) |
 | Node.js | `/usr/bin/node` | apt package |
 | npm | `/usr/bin/npm` | apt package |
+| tmux | `/usr/bin/tmux` | apt package |
+| GitHub CLI | `/usr/bin/gh` | apt package |
 | nextcloud-desktop-cmd | `/usr/bin/nextcloudcmd` | apt package |
 | mcp-obsidian | `/usr/bin/mcp-obsidian` | npm global |
 | mcp-server-memory | `/usr/bin/mcp-server-memory` | npm global |
+| gog | `/usr/bin/gog` | Google API CLI (v0.11.0) |
 
 ## Usage
 
@@ -26,10 +29,11 @@ docker pull ghcr.io/orrinwitt/nanobot-custom:latest
 ```bash
 docker run -d \
   --name nanobot \
-  -v /path/to/config:/root/.nanobot \
-  -v /path/to/workspace:/root/.nanobot/workspace \
+  -v /path/to/nanobot-data:/root/.nanobot \
   ghcr.io/orrinwitt/nanobot-custom:latest
 ```
+
+> **Note:** Only `/root/.nanobot` needs to be mounted. All tools are included in the image.
 
 ## MCP Server Configuration
 
@@ -66,11 +70,14 @@ docker push ghcr.io/orrinwitt/nanobot-custom:latest
 
 ## Volumes
 
+Only `/root/.nanobot` needs to be mounted as a volume. All tools are included in the image.
+
 | Path | Purpose |
 |------|---------|
 | `/root/.nanobot/config.json` | Configuration file |
 | `/root/.nanobot/workspace/` | Workspace (skills, memory, vault) |
 | `/root/.nanobot/workspace/vault/` | Obsidian vault (synced to Nextcloud) |
+| `/root/.nanobot/workspace/secrets/` | Credentials and tokens |
 
 ## Nextcloud Sync
 
@@ -83,3 +90,20 @@ nextcloudcmd --non-interactive --trust \
   /root/.nanobot/workspace/vault \
   'https://nextcloud.flwitts.us'
 ```
+
+## Google API Access (gog)
+
+The `gog` CLI provides access to Google services (Gmail, Calendar, Tasks, Drive):
+
+```bash
+# Authenticate
+gog auth login
+
+# Example: list emails
+gog gmail list
+
+# Example: list calendar events
+gog calendar list
+```
+
+See: https://github.com/steipete/gogcli
