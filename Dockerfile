@@ -55,6 +55,12 @@ RUN curl -L -o /tmp/gogcli.tar.gz \
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
+# Create config directory (like original)
+RUN mkdir -p /root/.nanobot
+
+# Gateway default port
+EXPOSE 18790
+
 # Set working directory
 WORKDIR /root/.nanobot
 
@@ -62,5 +68,6 @@ WORKDIR /root/.nanobot
 ENV PYTHONUNBUFFERED=1
 ENV NODE_PATH=/usr/lib/node_modules
 
-# Default command - use the installed nanobot entry point
-CMD ["nanobot"]
+# Match original image - ENTRYPOINT allows passing commands like 'gateway'
+ENTRYPOINT ["nanobot"]
+CMD ["status"]
