@@ -43,11 +43,13 @@ RUN npm install -g \
     @mauricio.wolff/mcp-obsidian \
     @modelcontextprotocol/server-memory
 
-# Install gog (Google API CLI) - standard location: /usr/bin/gog
-RUN curl -L -o /tmp/gog.tar.gz https://github.com/orrinwitt/gog/releases/latest/download/gog_linux_amd64.tar.gz \
-    && tar -xzf /tmp/gog.tar.gz -C /usr/bin gog \
+# Install gog (Google API CLI) from steipete/gogcli releases
+# Binary is named 'gog' inside the tarball
+RUN curl -L -o /tmp/gogcli.tar.gz \
+    https://github.com/steipete/gogcli/releases/download/v0.11.0/gogcli_0.11.0_linux_amd64.tar.gz \
+    && tar -xzf /tmp/gogcli.tar.gz -C /usr/bin gog \
     && chmod +x /usr/bin/gog \
-    && rm /tmp/gog.tar.gz
+    && rm /tmp/gogcli.tar.gz
 
 # Copy nanobot from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
