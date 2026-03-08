@@ -41,6 +41,7 @@ jobs:
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=post3-gws,enable={{is_default_branch}}
 
       - name: Build and push
         uses: docker/build-push-action@v5
@@ -50,7 +51,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            NANOBOT_VERSION=v0.1.4.post4
+            NANOBOT_VERSION=v0.1.4.post3
           no-cache: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
