@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone nanobot repository (specific version)
-ARG NANOBOT_VERSION=v0.1.4.post4
+ARG NANOBOT_VERSION=v0.1.4.post3
 WORKDIR /build
 RUN git clone --depth 1 --branch ${NANOBOT_VERSION} https://github.com/HKUDS/nanobot.git .
 
@@ -41,13 +41,15 @@ RUN apt-get update && apt-get install -y \
 # MCP servers will be run via npx (no global install needed)
 # npx caches packages in ~/.npm/_npx
 
-# Install gog (Google API CLI) from steipete/gogcli releases
-# Binary is named 'gog' inside the tarball
-RUN curl -L -o /tmp/gogcli.tar.gz \
-    https://github.com/steipete/gogcli/releases/download/v0.11.0/gogcli_0.11.0_linux_amd64.tar.gz \
-    && tar -xzf /tmp/gogcli.tar.gz -C /usr/bin gog \
-    && chmod +x /usr/bin/gog \
-    && rm /tmp/gogcli.tar.gz
+# Install gws (Google Workspace CLI) via npm
+RUN npm install -g @googleworkspace/cli
+
+# Install GitHub CLI (gh)
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && apt-get update && apt-get install -y gh \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy nanobot from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
