@@ -50,6 +50,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            NANOBOT_VERSION=v0.1.4.post3
+            NANOBOT_VERSION=v0.1.4.post4
+          no-cache: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
