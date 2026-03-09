@@ -57,9 +57,9 @@ RUN curl -sL https://github.com/danielmiessler/Fabric/releases/download/${FABRIC
     | tar -xz -C /usr/local/bin fabric \
     && chmod +x /usr/local/bin/fabric
 
-# Install Python packages for sermon-prep and other skills
+# Install Python packages for sermon-prep email delivery (Gmail API)
+# Note: EPUB generation uses stdlib zipfile — ebooklib not needed
 RUN pip install --no-cache-dir \
-    ebooklib \
     google-auth \
     google-auth-oauthlib \
     google-api-python-client
@@ -76,5 +76,8 @@ ENV PYTHONUNBUFFERED=1
 ENV NODE_PATH=/usr/lib/node_modules
 
 # Match original image: ENTRYPOINT + CMD for default gateway command
-ENTRYPOINT ["python", "-m", "nanobot"]
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["gateway"]

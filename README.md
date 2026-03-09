@@ -13,6 +13,8 @@ Custom Docker image for nanobot with MCP servers, Google Workspace API access, G
 | GitHub CLI | `/usr/bin/gh` | apt package |
 | nextcloud-desktop-cmd | `/usr/bin/nextcloudcmd` | apt package |
 | gws | `/usr/bin/gws` | Google Workspace CLI (npm global) |
+| fabric | `/usr/local/bin/fabric` | AI augmentation patterns (danielmiessler/fabric) |
+| google-api-python-client | pip | Gmail API for sermon-prep email delivery |
 | mcp-obsidian | npx cache | Run via `npx @mauricio.wolff/mcp-obsidian` |
 | mcp-server-memory | npx cache | Run via `npx @modelcontextprotocol/server-memory` |
 
@@ -120,6 +122,33 @@ gws calendar list
 ```
 
 See: https://github.com/googleworkspace/cli
+
+## Fabric (AI Augmentation Patterns)
+
+`fabric` provides 250+ AI patterns for text transformation, summarization, analysis, and more:
+
+```bash
+# List available patterns
+fabric --list
+
+# Use a pattern
+echo "content" | fabric --pattern summarize
+cat file.txt | fabric --pattern extract_wisdom
+```
+
+Fabric is configured via `~/.config/fabric/.env` (mounted from `/root/.nanobot`). Set these values:
+
+```env
+OPENAI_API_KEY=your-api-key
+OPENAI_API_BASE_URL=https://your-openwebui-instance/api/v1
+DEFAULT_MODEL=anthropic/claude-sonnet-4.6
+DEFAULT_VENDOR=OpenAI
+FABRIC_DISABLE_RESPONSES_API=true
+```
+
+> **Note:** `FABRIC_DISABLE_RESPONSES_API=true` is required for OpenWebUI compatibility (prevents fabric from using the `/responses` endpoint).
+
+See: https://github.com/danielmiessler/fabric
 
 ## GitHub CLI (gh)
 
