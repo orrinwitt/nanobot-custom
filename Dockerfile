@@ -51,6 +51,19 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && apt-get update && apt-get install -y gh \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Fabric (danielmiessler/fabric) - AI augmentation patterns
+ARG FABRIC_VERSION=v1.4.434
+RUN curl -sL https://github.com/danielmiessler/Fabric/releases/download/${FABRIC_VERSION}/fabric_Linux_x86_64.tar.gz \
+    | tar -xz -C /usr/local/bin fabric \
+    && chmod +x /usr/local/bin/fabric
+
+# Install Python packages for sermon-prep and other skills
+RUN pip install --no-cache-dir \
+    ebooklib \
+    google-auth \
+    google-auth-oauthlib \
+    google-api-python-client
+
 # Copy nanobot from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
