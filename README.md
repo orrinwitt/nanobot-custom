@@ -1,20 +1,20 @@
 # Nanobot Custom Image
 
-Custom Docker image for nanobot with MCP servers, Google API access, and Nextcloud sync.
+Custom Docker image for nanobot with MCP servers, Google Workspace API access, GitHub CLI, and Nextcloud sync.
 
 ## What's Included
 
 | Component | Location | Notes |
 |-----------|----------|-------|
-| nanobot | `/usr/local/lib/python3.12/site-packages/` | Built from source (v0.1.4.post2) |
+| nanobot | `/usr/local/lib/python3.12/site-packages/` | Built from source (v0.1.4.post4) |
 | Node.js | `/usr/bin/node` | apt package |
 | npm | `/usr/bin/npm` | apt package |
 | tmux | `/usr/bin/tmux` | apt package |
 | GitHub CLI | `/usr/bin/gh` | apt package |
 | nextcloud-desktop-cmd | `/usr/bin/nextcloudcmd` | apt package |
-| mcp-obsidian | `/usr/bin/mcp-obsidian` | npm global |
-| mcp-server-memory | `/usr/bin/mcp-server-memory` | npm global |
-| gog | `/usr/bin/gog` | Google API CLI (v0.11.0) |
+| gws | `/usr/bin/gws` | Google Workspace CLI (npm global) |
+| mcp-obsidian | npx cache | Run via `npx @mauricio.wolff/mcp-obsidian` |
+| mcp-server-memory | npx cache | Run via `npx @modelcontextprotocol/server-memory` |
 
 ## Usage
 
@@ -37,18 +37,21 @@ docker run -d \
 
 ## MCP Server Configuration
 
-The MCP servers are installed in standard locations and can be referenced by name:
+MCP servers are run via `npx` (no global install needed, cached automatically):
 
 ```json
 {
   "mcpServers": {
     "obsidian": {
-      "command": "mcp-obsidian",
-      "args": ["/root/.nanobot/workspace/vault"],
+      "command": "npx",
+      "args": ["-y", "@mauricio.wolff/mcp-obsidian", "/root/.nanobot/workspace/vault"],
+      "transport": "stdio",
       "disabled": false
     },
     "memory": {
-      "command": "mcp-server-memory",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "transport": "stdio",
       "disabled": false
     }
   }
@@ -101,19 +104,36 @@ nextcloudcmd --non-interactive --trust \
   'https://nextcloud.flwitts.us'
 ```
 
-## Google API Access (gog)
+## Google Workspace API Access (gws)
 
-The `gog` CLI provides access to Google services (Gmail, Calendar, Tasks, Drive):
+The `gws` CLI provides access to Google services (Gmail, Calendar, Tasks, Drive, Docs, Sheets, Slides):
 
 ```bash
 # Authenticate
-gog auth login
+gws auth login
 
 # Example: list emails
-gog gmail list
+gws gmail list
 
 # Example: list calendar events
-gog calendar list
+gws calendar list
 ```
 
-See: https://github.com/steipete/gogcli
+See: https://github.com/googleworkspace/cli
+
+## GitHub CLI (gh)
+
+The `gh` CLI provides GitHub API access for issues, PRs, Actions, and more:
+
+```bash
+# Authenticate
+gh auth login
+
+# Example: trigger workflow
+gh workflow run build.yml
+
+# Example: check workflow status
+gh run list --limit 5
+```
+
+See: https://cli.github.com/
