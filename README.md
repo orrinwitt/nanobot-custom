@@ -14,7 +14,6 @@ Custom Docker image for nanobot with MCP servers, Google Workspace API access, G
 | nextcloud-desktop-cmd | `/usr/bin/nextcloudcmd` | apt package |
 | gws | `/usr/bin/gws` | Google Workspace CLI (npm global) |
 | fabric | `/usr/local/bin/fabric` | AI augmentation patterns (danielmiessler/fabric) |
-| google-api-python-client | pip | Gmail API for sermon-prep email delivery |
 | mcp-obsidian | npx cache | Run via `npx @mauricio.wolff/mcp-obsidian` |
 | mcp-server-memory | npx cache | Run via `npx @modelcontextprotocol/server-memory` |
 

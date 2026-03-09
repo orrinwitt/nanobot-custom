@@ -57,12 +57,9 @@ RUN curl -sL https://github.com/danielmiessler/Fabric/releases/download/${FABRIC
     | tar -xz -C /usr/local/bin fabric \
     && chmod +x /usr/local/bin/fabric
 
-# Install Python packages for sermon-prep email delivery (Gmail API)
-# Note: EPUB generation uses stdlib zipfile — ebooklib not needed
-RUN pip install --no-cache-dir \
-    google-auth \
-    google-auth-oauthlib \
-    google-api-python-client
+# No extra Python packages needed for sermon-prep:
+# - EPUB generation uses stdlib zipfile
+# - Email delivery uses gws (already installed above)
 
 # Copy nanobot from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
