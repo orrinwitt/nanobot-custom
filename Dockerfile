@@ -58,11 +58,12 @@ RUN curl -sL https://github.com/danielmiessler/Fabric/releases/download/${FABRIC
     && chmod +x /usr/local/bin/fabric
 
 # Pre-download all Fabric patterns (baked into image, no boot-time download)
-# Requires OPENAI_API_KEY for initial download, use dummy key
+# fabric -U needs .env to exist (dummy key is fine, patterns come from GitHub)
 RUN mkdir -p /root/.config/fabric \
-    && OPENAI_API_KEY=dummy fabric -U 2>/dev/null || true \
-    && ls /root/.config/fabric/patterns | wc -l | grep -q '[2-9][0-9][0-9]\|1[0-9][0-9][0-9]' \
-    && echo "Patterns pre-downloaded: $(ls /root/.config/fabric/patterns | wc -l)"
+    && echo "OPENAI_API_KEY=build-time-dummy" > /root/.config/fabric/.env \
+    && fabric -U \
+    && echo "Patterns pre-downloaded: $(ls /root/.config/fabric/patterns | wc -l)" \
+    && rm /root/.config/fabric/.env
 
 # No extra Python packages needed for sermon-prep:
 # - EPUB generation uses stdlib zipfile
