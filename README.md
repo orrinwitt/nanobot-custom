@@ -124,7 +124,7 @@ See: https://github.com/googleworkspace/cli
 
 ## Fabric (AI Augmentation Patterns)
 
-`fabric` provides 250+ AI patterns for text transformation, summarization, analysis, and more:
+`fabric` provides 257+ AI patterns for text transformation, summarization, analysis, and more:
 
 ```bash
 # List available patterns
@@ -135,7 +135,21 @@ echo "content" | fabric --pattern summarize
 cat file.txt | fabric --pattern extract_wisdom
 ```
 
-Fabric is configured via `~/.config/fabric/.env` (mounted from `/root/.nanobot`). Set these values:
+### Pattern Storage
+
+| Type | Location | Notes |
+|------|----------|-------|
+| Standard patterns | Baked into image | 257 patterns pre-downloaded at build |
+| Custom patterns | `workspace/skills/fabric/patterns/` | Persisted in volume, copied at boot |
+
+**Benefits:**
+- No boot-time download delay (patterns already in image)
+- Custom patterns persist across container rebuilds
+- Background update check keeps patterns current
+
+### Configuration
+
+Fabric is configured via `~/.config/fabric/.env` (mounted from `/root/.nanobot/workspace/secrets/fabric.env`):
 
 ```env
 OPENAI_API_KEY=your-api-key

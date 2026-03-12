@@ -13,12 +13,32 @@ fi
 
 # ── Fabric (AI augmentation patterns) ───────────────────────────────────────
 FABRIC_ENV_SRC="$SECRETS/fabric.env"
+FABRIC_PATTERNS_SRC="/root/.nanobot/workspace/skills/fabric/patterns"
+FABRIC_PATTERNS_DEST="/root/.config/fabric/patterns"
+
+mkdir -p /root/.config/fabric
+
+# Copy API key
 if [ -f "$FABRIC_ENV_SRC" ]; then
-    mkdir -p /root/.config/fabric
     cp "$FABRIC_ENV_SRC" /root/.config/fabric/.env
-    if [ ! -d "/root/.config/fabric/patterns" ] || [ -z "$(ls -A /root/.config/fabric/patterns 2>/dev/null)" ]; then
-        fabric -U 2>/dev/null || true
-    fi
+fi
+
+# Copy custom patterns from persistence volume (if they exist)
+# Standard patterns are baked into the image
+if [ -d "$FABRIC_PATTERNS_SRC" ]; then
+    for pattern_dir in "$FABRIC_PATTERNS_SRC"/*; do
+        if [ -d "$pattern_dir" ]; then
+            pattern_name=$(basename "$pattern_dir")
+            mkdir -p "$FABRIC_PATTERNS_DEST/$pattern_name"
+            cp -r "$pattern_dir"/* "$FABRIC_PATTERNS_DEST/$pattern_name/" 2>/dev/null || true
+        fi
+    done
+fi
+
+# Check for pattern updates from GitHub (quick if already current)
+# Runs in background to not block startup, logs to /tmp/fabric-update.log
+if [ -f "/root/.config/fabric/.env" ]; then
+    (fabric -U > /tmp/fabric-update.log 2>&1 &) || true
 fi
 
 exec python -m nanobot "$@"
