@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone nanobot repository (specific version)
-ARG NANOBOT_VERSION=v0.1.4.post4
+ARG NANOBOT_VERSION=v0.1.4.post5
 WORKDIR /build
 RUN git clone --depth 1 --branch ${NANOBOT_VERSION} https://github.com/HKUDS/nanobot.git .
 
@@ -66,7 +66,9 @@ RUN mkdir -p /root/.config/fabric \
     && rm /root/.config/fabric/.env
 
 # Install pip-audit for dependency security scanning
-RUN pip install --no-cache-dir pip-audit
+# Install ebooklib for EPUB generation
+# Install Pillow for image/covers
+RUN pip install --no-cache-dir pip-audit ebooklib Pillow
 
 # Copy nanobot from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
