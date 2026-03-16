@@ -65,9 +65,8 @@ RUN mkdir -p /root/.config/fabric \
     && echo "Patterns pre-downloaded: $(ls /root/.config/fabric/patterns | wc -l)" \
     && rm /root/.config/fabric/.env
 
-# No extra Python packages needed for sermon-prep:
-# - EPUB generation uses stdlib zipfile
-# - Email delivery uses gws (already installed above)
+# Install pip-audit for dependency security scanning
+RUN pip install --no-cache-dir pip-audit
 
 # Copy nanobot from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
