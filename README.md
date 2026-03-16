@@ -6,7 +6,7 @@ Custom Docker image for nanobot with MCP servers, Google Workspace API access, G
 
 | Component | Location | Notes |
 |-----------|----------|-------|
-| nanobot | `/usr/local/lib/python3.12/site-packages/` | Built from source (v0.1.4.post4) |
+| nanobot | `/usr/local/lib/python3.12/site-packages/` | Built from source (v0.1.4.post5) |
 | Node.js | `/usr/bin/node` | apt package |
 | npm | `/usr/bin/npm` | apt package |
 | tmux | `/usr/bin/tmux` | apt package |
@@ -14,6 +14,9 @@ Custom Docker image for nanobot with MCP servers, Google Workspace API access, G
 | nextcloud-desktop-cmd | `/usr/bin/nextcloudcmd` | apt package |
 | gws | `/usr/bin/gws` | Google Workspace CLI (npm global) |
 | fabric | `/usr/local/bin/fabric` | AI augmentation patterns (danielmiessler/fabric) |
+| pip-audit | `/usr/local/bin/pip-audit` | Python dependency security scanning |
+| ebooklib | Python package | EPUB generation |
+| Pillow | Python package | Image processing (EPUB covers) |
 | mcp-obsidian | npx cache | Run via `npx @mauricio.wolff/mcp-obsidian` |
 | mcp-server-memory | npx cache | Run via `npx @modelcontextprotocol/server-memory` |
 
