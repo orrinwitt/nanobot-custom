@@ -41,4 +41,10 @@ if [ -f "/root/.config/fabric/.env" ]; then
     (fabric -U > /tmp/fabric-update.log 2>&1 &) || true
 fi
 
+# ── Vault Watchdog (Nextcloud sync) ─────────────────────────────────────────
+WATCHDOG_SCRIPT="/root/.nanobot/workspace/scripts/vault-watchdog.py"
+if [ -f "$WATCHDOG_SCRIPT" ]; then
+    python3 "$WATCHDOG_SCRIPT" > /dev/null 2>&1 &
+fi
+
 exec python -m nanobot "$@"
