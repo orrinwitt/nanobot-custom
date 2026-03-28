@@ -6,7 +6,7 @@ Custom Docker image for nanobot with MCP servers, Google Workspace API access, G
 
 | Component | Location | Notes |
 |-----------|----------|-------|
-| nanobot | `/usr/local/lib/python3.12/site-packages/` | Built from source (v0.1.4.post5) |
+| nanobot | `/usr/local/lib/python3.12/site-packages/` | Built from source (v0.1.4.post6) |
 | Node.js | `/usr/bin/node` | apt package |
 | npm | `/usr/bin/npm` | apt package |
 | tmux | `/usr/bin/tmux` | apt package |
