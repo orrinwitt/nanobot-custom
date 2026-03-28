@@ -32,6 +32,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Extract nanobot version from Dockerfile
+        id: version
+        run: |
+          NANOBOT_VERSION=$(grep -oP 'ARG NANOBOT_VERSION=\K[^ ]+' Dockerfile)
+          echo "version=$NANOBOT_VERSION" >> $GITHUB_OUTPUT
+          echo "version=$NANOBOT_VERSION"
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -41,7 +48,7 @@ jobs:
             type=ref,event=branch
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=post5-stable,enable={{is_default_branch}}
+            type=raw,value=${{ steps.version.outputs.version }}-stable,enable={{is_default_branch}}
 
       - name: Build and push
         uses: docker/build-push-action@v5
@@ -51,7 +58,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            NANOBOT_VERSION=v0.1.4.post5
+            NANOBOT_VERSION=${{ steps.version.outputs.version }}
           no-cache: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
