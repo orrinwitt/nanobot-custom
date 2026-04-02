@@ -68,7 +68,7 @@ RUN mkdir -p /root/.config/fabric \
 # Install pip-audit for dependency security scanning
 # Install ebooklib for EPUB generation
 # Install Pillow for image/covers
-RUN pip install --no-cache-dir pip-audit ebooklib Pillow watchdog
+RUN pip install --no-cache-dir pip-audit ebooklib Pillow watchdog ollama lightrag-hku
 
 # Copy nanobot from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
