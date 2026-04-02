@@ -15,6 +15,9 @@ Custom Docker image for nanobot with MCP servers, Google Workspace API access, G
 | gws | `/usr/bin/gws` | Google Workspace CLI (npm global) |
 | fabric | `/usr/local/bin/fabric` | AI augmentation patterns (danielmiessler/fabric) |
 | pip-audit | `/usr/local/bin/pip-audit` | Python dependency security scanning |
+| watchdog | Python package | Event-driven vault file watching |
+| lightrag-hku | Python package | Vault RAG indexing and querying |
+| ollama | Python package | Ollama client for local LLM inference |
 | ebooklib | Python package | EPUB generation |
 | Pillow | Python package | Image processing (EPUB covers) |
 | mcp-obsidian | npx cache | Run via `npx @mauricio.wolff/mcp-obsidian` |
@@ -182,3 +185,50 @@ gh run list --limit 5
 ```
 
 See: https://cli.github.com/
+
+## Vault RAG (Retrieval-Augmented Generation)
+
+The vault is indexed and searchable using LightRAG with Ollama. Ask natural questions about your vault and get synthesized answers drawn from your actual notes.
+
+### How it works
+
+1. **Indexing** — Vault files are chunked, embedded (`qwen3-embedding:8b`), and stored in a knowledge graph + vector database
+2. **Querying** — Your question is embedded, relevant chunks are retrieved, and `qwen3.5:cloud` synthesizes an answer **only from retrieved context** (no hallucination)
+
+### Usage
+
+Trigger phrases in Telegram/Discord:
+- "search my vault for [topic]"
+- "ask my vault about [topic]"
+- "what do my notes say about [topic]"
+
+Or from the command line:
+```bash
+cd /root/.nanobot/workspace
+python3 skills/vault-rag/query_vault.py "your question"
+python3 skills/vault-rag/query_vault.py --mode mix "thorough question"
+
+# Re-index after vault changes
+python3 skills/vault-rag/index_vault.py --reindex
+```
+
+### Auto-indexing
+
+The vault-watchdog automatically re-indexes after each Nextcloud sync, so the index stays current with no manual intervention.
+
+### Models used
+
+| Step | Model | Location |
+|------|-------|----------|
+| Embedding | `qwen3-embedding:8b` | Ollama (local, GPU) |
+| Entity extraction | `nemotron-3-nano:4b` | Ollama (local, GPU, indexing only) |
+| Synthesis | `qwen3.5:cloud` | Ollama → OpenRouter |
+
+### Query modes
+
+| Mode | Description |
+|------|-------------|
+| `local` | Graph entity + chunks (default, fast) |
+| `mix` | Combined (most thorough) |
+| `global` | Full graph traversal |
+| `naive` | Pure vector similarity |
