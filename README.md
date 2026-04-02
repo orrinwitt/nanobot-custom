@@ -17,7 +17,7 @@ Custom Docker image for nanobot with MCP servers, Google Workspace API access, G
 | pip-audit | `/usr/local/bin/pip-audit` | Python dependency security scanning |
 | watchdog | Python package | Event-driven vault file watching |
 | lightrag-hku | Python package | Vault RAG indexing and querying |
-| ollama | Python package | Ollama client for local LLM inference |
+| ollama | Python package | Ollama client (connects to Ollama server at 192.168.86.88:11434) |
 | ebooklib | Python package | EPUB generation |
 | Pillow | Python package | Image processing (EPUB covers) |
 | mcp-obsidian | npx cache | Run via `npx @mauricio.wolff/mcp-obsidian` |
@@ -220,9 +220,9 @@ The vault-watchdog automatically re-indexes after each Nextcloud sync, so the in
 
 | Step | Model | Location |
 |------|-------|----------|
-| Embedding | `qwen3-embedding:8b` | Ollama (local, GPU) |
-| Entity extraction | `nemotron-3-nano:4b` | Ollama (local, GPU, indexing only) |
-| Synthesis | `qwen3.5:cloud` | Ollama → OpenRouter |
+| Embedding | `qwen3-embedding:8b` | Ollama server (GPU) |
+| Entity extraction | `nemotron-3-nano:4b` | Ollama server (GPU, indexing only) |
+| Synthesis | `qwen3.5:cloud` | Ollama server → OpenRouter |
 
 ### Query modes
 
