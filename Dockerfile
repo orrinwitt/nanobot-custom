@@ -36,6 +36,7 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     tmux \
+    chromium \
     && rm -rf /var/lib/apt/lists/*
 
 # MCP servers will be run via npx (no global install needed)
