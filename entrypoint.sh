@@ -47,4 +47,12 @@ if [ -f "$WATCHDOG_SCRIPT" ]; then
     python3 "$WATCHDOG_SCRIPT" > /dev/null 2>&1 &
 fi
 
+# ── PinchTab Browser Automation ─────────────────────────────────────────────
+PINCHTAB_SERVICE="/root/.nanobot/workspace/scripts/pinchtab-service.sh"
+if [ -f "$PINCHTAB_SERVICE" ]; then
+    # Update service script to match baked-in binary path
+    sed -i 's|0\.7\.6|v0.8.6|' "$PINCHTAB_SERVICE" 2>/dev/null
+    "$PINCHTAB_SERVICE" start > /dev/null 2>&1 &
+fi
+
 exec python -m nanobot "$@"
