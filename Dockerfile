@@ -70,6 +70,13 @@ RUN mkdir -p /root/.config/fabric \
 # Install Pillow for image/covers
 RUN pip install --no-cache-dir pip-audit ebooklib Pillow watchdog ollama lightrag-hku
 
+# Install PinchTab browser automation (v0.8.6)
+ARG PINCHTAB_VERSION=v0.8.6
+RUN mkdir -p /root/.pinchtab/bin/${PINCHTAB_VERSION} \
+    && curl -fsSL "https://github.com/pinchtab/pinchtab/releases/download/${PINCHTAB_VERSION}/pinchtab-linux-amd64" \
+       -o /root/.pinchtab/bin/${PINCHTAB_VERSION}/pinchtab-linux-amd64 \
+    && chmod +x /root/.pinchtab/bin/${PINCHTAB_VERSION}/pinchtab-linux-amd64
+
 # Copy nanobot from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
