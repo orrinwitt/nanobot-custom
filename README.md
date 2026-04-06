@@ -6,7 +6,7 @@ Custom Docker image for nanobot with MCP servers, Google Workspace API access, G
 
 | Component | Location | Notes |
 |-----------|----------|-------|
-| nanobot | `/usr/local/lib/python3.12/site-packages/` | Built from source (v0.1.4.post6) |
+| nanobot | `/usr/local/lib/python3.12/site-packages/` | Built from source (v0.1.5) |
 | Node.js | `/usr/bin/node` | apt package |
 | npm | `/usr/bin/npm` | apt package |
 | tmux | `/usr/bin/tmux` | apt package |
@@ -22,6 +22,8 @@ Custom Docker image for nanobot with MCP servers, Google Workspace API access, G
 | Pillow | Python package | Image processing (EPUB covers) |
 | mcp-obsidian | npx cache | Run via `npx @mauricio.wolff/mcp-obsidian` |
 | mcp-server-memory | npx cache | Run via `npx @modelcontextprotocol/server-memory` |
+| chromium | `/usr/bin/chromium` | Browser engine for PinchTab automation |
+| pinchtab | `/root/.pinchtab/bin/` | Browser automation server (v0.8.6, auto-starts) |
 
 ## Usage
 
@@ -185,6 +187,60 @@ gh run list --limit 5
 ```
 
 See: https://cli.github.com/
+
+## PinchTab Browser Automation
+
+PinchTab provides headless browser automation for navigating websites, taking screenshots, filling forms, and interacting with web pages.
+
+### Status
+
+- **Auto-starts** on container boot (via entrypoint.sh)
+- **Token auth** required — configured in `/root/.pinchtab/config.json`
+- **Container mode**: Uses `PINCHTAB_CHROME_NO_SANDBOX=1` for non-root/container compatibility
+
+### Quick Test
+
+```bash
+curl -X POST http://localhost:9867/navigate \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com"}'
+```
+
+### Service Commands
+
+```bash
+# On the container:
+/root/.nanobot/workspace/scripts/pinchtab-service.sh start|stop|restart|status
+```
+
+### Endpoints
+
+| Endpoint | Method | Description |
+|---------|--------|-------------|
+| `/navigate` | POST | Navigate to a URL |
+| `/screenshot` | POST | Take a screenshot |
+| `/click` | POST | Click an element by ref |
+| `/type` | POST | Type text into an element |
+| `/scroll` | POST | Scroll the page |
+| `/page` | GET | Get page info and element refs |
+| `/tabs` | GET | List open tabs |
+| `/close` | POST | Close a tab |
+| `/health` | GET | Health check |
+
+### SSRF Whitelist
+
+Local network access (localhost, home network) is controlled via `tools.ssrfWhitelist` in `config.json`:
+
+```json
+{
+  "tools": {
+    "ssrfWhitelist": ["127.0.0.0/8", "::1/128", "192.168.0.0/16"]
+  }
+}
+```
+
+See: https://github.com/HKUDS/nanobot/releases/tag/v0.1.5
 
 ## Vault RAG (Retrieval-Augmented Generation)
 
