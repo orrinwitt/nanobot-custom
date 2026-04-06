@@ -48,10 +48,10 @@ if [ -f "$WATCHDOG_SCRIPT" ]; then
 fi
 
 # ── PinchTab Browser Automation ─────────────────────────────────────────────
+# PinchTab requires PINCHTAB_CHROME_NO_SANDBOX=1 in container/non-root environments
+export PINCHTAB_CHROME_NO_SANDBOX=1
 PINCHTAB_SERVICE="/root/.nanobot/workspace/scripts/pinchtab-service.sh"
 if [ -f "$PINCHTAB_SERVICE" ]; then
-    # Update service script to match baked-in binary path
-    sed -i 's|0\.7\.6|v0.8.6|' "$PINCHTAB_SERVICE" 2>/dev/null
     "$PINCHTAB_SERVICE" start > /dev/null 2>&1 &
 fi
 
