@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone nanobot repository (specific version)
-ARG NANOBOT_VERSION=v0.1.5
+ARG NANOBOT_VERSION=v0.1.5.post1
 WORKDIR /build
 RUN git clone --depth 1 --branch ${NANOBOT_VERSION} https://github.com/HKUDS/nanobot.git .
 
@@ -69,7 +69,8 @@ RUN mkdir -p /root/.config/fabric \
 # Install pip-audit for dependency security scanning
 # Install ebooklib for EPUB generation
 # Install Pillow for image/covers
-RUN pip install --no-cache-dir pip-audit ebooklib Pillow watchdog ollama lightrag-hku
+# Install opencv-python-headless for image processing
+RUN pip install --no-cache-dir pip-audit ebooklib Pillow opencv-python-headless watchdog ollama lightrag-hku
 
 # Install PinchTab browser automation (v0.8.6)
 ARG PINCHTAB_VERSION=v0.8.6
