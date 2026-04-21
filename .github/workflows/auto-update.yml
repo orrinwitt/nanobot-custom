@@ -2,67 +2,85 @@ name: Auto-Update from Upstream
 
 on:
   schedule:
-    # Check daily at 6 AM UTC (1 AM EST)
-    - cron: '0 6 * * *'
-  workflow_dispatch: # Allow manual trigger
+    - cron: '0 6 * * *'  # Daily at 6 AM UTC
+  workflow_dispatch:       # Manual trigger
 
 permissions:
   contents: write
 
 jobs:
-  check-and-update:
+  auto-update:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Get latest release from HKUDS/nanobot
-        id: upstream
+      - name: Check for nanobot updates
+        id: nanobot
         run: |
-          LATEST=$(curl -s https://api.github.com/repos/HKUDS/nanobot/releases/latest | jq -r '.tag_name')
-          echo "version=$LATEST" >> $GITHUB_OUTPUT
-          echo "Latest upstream version: $LATEST"
-
-      - name: Get current version
-        id: current
-        run: |
-          CURRENT=$(grep -oP 'ARG NANOBOT_VERSION=\K[^ ]+' Dockerfile)
-          echo "version=$CURRENT" >> $GITHUB_OUTPUT
-          echo "Current version: $CURRENT"
-
-      - name: Check if update needed
-        id: update
-        run: |
-          if [ "${{ steps.upstream.outputs.version }}" != "${{ steps.current.outputs.version }}" ]; then
-            echo "needed=true" >> $GITHUB_OUTPUT
-            echo "New version available: ${{ steps.upstream.outputs.version }}"
+          CURRENT=$(grep 'ARG NANOBOT_VERSION=' Dockerfile | cut -d= -f2)
+          LATEST=$(curl -sf https://api.github.com/repos/HKUDS/nanobot/releases/latest | jq -r '.tag_name')
+          if [ -z "$LATEST" ]; then
+            echo "Could not fetch latest nanobot release"
+            echo "updated=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "current=${CURRENT} latest=${LATEST}"
+          if [ "$CURRENT" != "$LATEST" ]; then
+            sed -i "s/ARG NANOBOT_VERSION=${CURRENT}/ARG NANOBOT_VERSION=${LATEST}/" Dockerfile
+            echo "updated=true" >> $GITHUB_OUTPUT
+            echo "nanobot_change=${CURRENT} → ${LATEST}" >> $GITHUB_OUTPUT
           else
-            echo "needed=false" >> $GITHUB_OUTPUT
-            echo "Already on latest version"
+            echo "updated=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Update Dockerfile
-        if: steps.update.outputs.needed == 'true'
+      - name: Check for Fabric updates
+        id: fabric
         run: |
-          sed -i 's/ARG NANOBOT_VERSION=.*/ARG NANOBOT_VERSION=${{ steps.upstream.outputs.version }}/' Dockerfile
+          CURRENT=$(grep 'ARG FABRIC_VERSION=' Dockerfile | cut -d= -f2)
+          LATEST=$(curl -sf https://api.github.com/repos/danielmiessler/Fabric/releases/latest | jq -r '.tag_name')
+          if [ -z "$LATEST" ]; then
+            echo "Could not fetch latest Fabric release"
+            echo "updated=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "current=${CURRENT} latest=${LATEST}"
+          if [ "$CURRENT" != "$LATEST" ]; then
+            sed -i "s/ARG FABRIC_VERSION=${CURRENT}/ARG FABRIC_VERSION=${LATEST}/" Dockerfile
+            echo "updated=true" >> $GITHUB_OUTPUT
+            echo "fabric_change=${CURRENT} → ${LATEST}" >> $GITHUB_OUTPUT
+          else
+            echo "updated=false" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Commit and push changes
-        if: steps.update.outputs.needed == 'true'
+      - name: Check for PinchTab updates
+        id: pinchtab
         run: |
+          CURRENT=$(grep 'ARG PINCHTAB_VERSION=' Dockerfile | cut -d= -f2)
+          LATEST=$(curl -sf https://api.github.com/repos/pinchtab/pinchtab/releases/latest | jq -r '.tag_name')
+          if [ -z "$LATEST" ]; then
+            echo "Could not fetch latest PinchTab release"
+            echo "updated=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "current=${CURRENT} latest=${LATEST}"
+          if [ "$CURRENT" != "$LATEST" ]; then
+            sed -i "s/ARG PINCHTAB_VERSION=${CURRENT}/ARG PINCHTAB_VERSION=${LATEST}/" Dockerfile
+            echo "updated=true" >> $GITHUB_OUTPUT
+            echo "pinchtab_change=${CURRENT} → ${LATEST}" >> $GITHUB_OUTPUT
+          else
+            echo "updated=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push if changed
+        if: steps.nanobot.outputs.updated == 'true' || steps.fabric.outputs.updated == 'true' || steps.pinchtab.outputs.updated == 'true'
+        run: |
+          MSG="Auto-Update:"
+          [ "${{ steps.nanobot.outputs.updated }}" == "true" ] && MSG="$MSG nanobot ${{ steps.nanobot.outputs.nanobot_change }}"
+          [ "${{ steps.fabric.outputs.updated }}" == "true" ] && MSG="$MSG fabric ${{ steps.fabric.outputs.fabric_change }}"
+          [ "${{ steps.pinchtab.outputs.updated }}" == "true" ] && MSG="$MSG pinchtab ${{ steps.pinchtab.outputs.pinchtab_change }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Dockerfile
-          git commit -m "Auto-update to nanobot ${{ steps.upstream.outputs.version }}"
+          git commit -m "$MSG"
           git push
-
-      - name: Notify on Telegram
-        if: steps.update.outputs.needed == 'true'
-        run: |
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-            -d text="🔄 nanobot-custom updated to ${{ steps.upstream.outputs.version }}%0A%0AImage will be built automatically." \
-            -d parse_mode="HTML"
-
-      - name: No update needed
-        if: steps.update.outputs.needed != 'true'
-        run: echo "No update needed. Current version is up to date."
