@@ -55,4 +55,33 @@ if [ -f "$PINCHTAB_SERVICE" ]; then
     "$PINCHTAB_SERVICE" start > /dev/null 2>&1 &
 fi
 
+# ── James Blinds Platform (dev environment) ──────────────────────────────────
+JBP_DIR="/root/.nanobot/workspace/james-blinds-platform"
+JBP_DATA="$JBP_DIR/postgres-data"
+
+if [ -d "$JBP_DIR" ] && [ -d "$JBP_DATA" ]; then
+    # Start PostgreSQL if not already running
+    if ! pg_isready -q 2>/dev/null; then
+        if pg_lsclusters 2>/dev/null | grep -q "17 main"; then
+            pg_ctlcluster 17 main start > /dev/null 2>&1 || true
+        else
+            pg_createcluster 17 main --datadir="$JBP_DATA" > /dev/null 2>&1 || true
+            pg_ctlcluster 17 main start > /dev/null 2>&1 || true
+        fi
+
+        # Wait for PostgreSQL to be ready
+        for i in $(seq 1 30); do
+            pg_isready -q 2>/dev/null && break
+            sleep 1
+        done
+    fi
+
+    # Start Next.js dev server on port 8501
+    if ! curl -s -o /dev/null -w "%{http_code}" http://localhost:8501/ | grep -q "200"; then
+        cd "$JBP_DIR"
+        nohup bash -c "PORT=8501 npm run dev" > /tmp/jbp-dev.log 2>&1 &
+        echo $! > /tmp/jbp.pid
+    fi
+fi
+
 exec python -m nanobot "$@"
