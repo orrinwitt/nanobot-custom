@@ -55,6 +55,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 # Install gws (Google Workspace CLI) via npm
 RUN npm install -g @googleworkspace/cli
 
+# Install psycopg2 for JBP deduplicate.py (sync runs on every boot)
+RUN pip install --no-cache-dir psycopg2-binary
+
 # Install GitHub CLI (gh)
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
     && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
