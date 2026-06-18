@@ -60,14 +60,19 @@ JBP_DIR="/root/.nanobot/workspace/james-blinds-platform"
 JBP_DATA="$JBP_DIR/postgres-data"
 
 if [ -d "$JBP_DIR" ] && [ -d "$JBP_DATA" ]; then
+    # Ensure PostgreSQL cluster uses the persistent data directory on the volume
+    if ! pg_lsclusters 2>/dev/null | grep -q "17 main"; then
+        pg_createcluster 17 main --datadir="$JBP_DATA" > /dev/null 2>&1 || true
+    fi
+
+    # Ensure the postgres user can traverse to the persistent volume path
+    chmod o+x /root /root/.nanobot /root/.nanobot/workspace /root/.nanobot/workspace/james-blinds-platform 2>/dev/null || true
+    chown -R postgres:postgres "$JBP_DATA" 2>/dev/null || true
+    chmod 700 "$JBP_DATA" 2>/dev/null || true
+
     # Start PostgreSQL if not already running
     if ! pg_isready -q 2>/dev/null; then
-        if pg_lsclusters 2>/dev/null | grep -q "17 main"; then
-            pg_ctlcluster 17 main start > /dev/null 2>&1 || true
-        else
-            pg_createcluster 17 main --datadir="$JBP_DATA" > /dev/null 2>&1 || true
-            pg_ctlcluster 17 main start > /dev/null 2>&1 || true
-        fi
+        pg_ctlcluster 17 main start > /dev/null 2>&1 || true
 
         # Wait for PostgreSQL to be ready
         for i in $(seq 1 30); do
@@ -75,6 +80,38 @@ if [ -d "$JBP_DIR" ] && [ -d "$JBP_DATA" ]; then
             sleep 1
         done
     fi
+
+    # Run migrations + seed + fix indexes/columns (idempotent, skips if already done)
+    PGPASSWORD=jbplatform psql -h localhost -U jbplatform -d jbplatform -c "SELECT 1" > /dev/null 2>&1 && {
+        cd "$JBP_DIR"
+        npx prisma migrate deploy > /dev/null 2>&1 || true
+        PGPASSWORD=jbplatform psql -h localhost -U jbplatform -d jbplatform -c "
+            CREATE UNIQUE INDEX IF NOT EXISTS \"Project_name_state_key\" ON \"Project\" (name, state);
+            CREATE UNIQUE INDEX IF NOT EXISTS \"GC_name_key\" ON \"GC\" (name);
+            CREATE UNIQUE INDEX IF NOT EXISTS \"Manufacturer_name_key\" ON \"Manufacturer\" (name);
+            CREATE UNIQUE INDEX IF NOT EXISTS \"BidRecipient_bidId_gcId_key\" ON \"BidRecipient\" (\"bidId\", \"gcId\");
+        " > /dev/null 2>&1 || true
+        PGPASSWORD=jbplatform psql -h localhost -U jbplatform -d jbplatform -c "
+            ALTER TABLE \"Bid\" ALTER COLUMN \"estimatorId\" DROP NOT NULL;
+            ALTER TABLE \"Bid\" ALTER COLUMN \"bidDate\" DROP NOT NULL;
+            ALTER TABLE \"Bid\" ALTER COLUMN \"gcId\" DROP NOT NULL;
+            ALTER TABLE \"Bid\" ALTER COLUMN \"won\" DROP NOT NULL;
+            ALTER TABLE \"Bid\" ALTER COLUMN \"veSubmitted\" DROP NOT NULL;
+        " > /dev/null 2>&1 || true
+        PGPASSWORD=jbplatform psql -h localhost -U jbplatform -d jbplatform -c "
+            CREATE TABLE IF NOT EXISTS \"SyncLog\" (
+                id SERIAL PRIMARY KEY,
+                sheet_name TEXT NOT NULL,
+                last_sync TIMESTAMP,
+                row_count INTEGER,
+                status TEXT,
+                error TEXT
+            );
+        " > /dev/null 2>&1 || true
+        # Seed (idempotent — uses findFirst+create, skips if data exists)
+        DATABASE_URL="postgresql://jbplatform:jbplatform@localhost:5432/jbplatform?schema=public" \
+            npx tsx prisma/seed.ts > /dev/null 2>&1 || true
+    }
 
     # Start Next.js dev server on port 8501
     if ! curl -s -o /dev/null -w "%{http_code}" http://localhost:8501/ | grep -q "200"; then

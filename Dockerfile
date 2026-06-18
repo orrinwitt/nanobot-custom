@@ -30,6 +30,7 @@ RUN pip install --no-cache-dir .[discord]
 FROM python:3.12-slim
 
 # Install runtime dependencies (standard locations)
+# PostgreSQL 17: needed for James Blinds Platform database (data on persistent volume)
 RUN apt-get update && apt-get install -y \
     nodejs \
     npm \
@@ -38,10 +39,18 @@ RUN apt-get update && apt-get install -y \
     curl \
     tmux \
     chromium \
+    postgresql-17 \
+    postgresql-client-17 \
     && rm -rf /var/lib/apt/lists/*
 
 # MCP servers will be run via npx (no global install needed)
 # npx caches packages in ~/.npm/_npx
+
+# Install Node.js 22 LTS (replaces Debian's older Node 20)
+# Next.js 16 recommends Node 20.9+; Node 22 LTS is current long-term support
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install gws (Google Workspace CLI) via npm
 RUN npm install -g @googleworkspace/cli
